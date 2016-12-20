@@ -1,0 +1,89 @@
+<script>
+
+//URL used to get JSON Data for the Charts
+this.URL = 'http://rawgit.com/cyberkingvb/CustomWidgetWithChart/master/financialdata2016.json';
+
+//Refresh interval in milliseconds 60000 milliseconds = 60 seconds
+this.REFRESH_INTERVAL = 60000;
+
+//flag to check if widget should auto Refresh
+this.AUTO_REFRESH_ENABLED = true;
+
+//Highcharts Options
+this.HIGHCHART_OPTIONS = {
+            chart: {
+                type: 'line',
+                zoomType: 'x'
+            },
+            exporting: {
+                enabled: false
+            },
+            credits: {
+                enabled: false,
+                title: '',
+                style: {
+                    display: 'none'
+                }
+            },
+            title: {
+                text: 'Sales of 2016'
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            yAxis: {
+                min:0,
+            },
+            tooltip: {
+                crosshairs: true,
+                shared: true,
+                valueSuffix: 'Units'
+            },
+            legend: {
+                enabled: false
+            },
+            series: [{
+                name: 'Temperatures',
+                data: []
+            }]
+        };
+
+this.widgetDetails = ko.observable();
+this.error = ko.observable(null);
+var _this = this;
+var getdata = function() 
+    {
+$.getJSON(_this.URL, function (data) 
+    		{
+      		    _this.HIGHCHART_OPTIONS.series[0].data = data;
+    		    _this.widgetDetails(_this.HIGHCHART_OPTIONS);
+		    _this.error(null);
+    		}).fail(function(errorObject,error) 
+{
+      		console.log(errorObject);
+				_this.error(errorObject);
+ });
+   }
+
+getdata();
+    
+if(this.AUTO_REFRESH_ENABLED)
+	setInterval(getdata, this.REFRESH_INTERVAL);
+
+</script>
+
+<!-- ko if: error() == null -->
+<div data-bind="highCharts: widgetDetails()" style="height:380px; width:700px"></div>
+<!-- /ko -->
+
+<!-- ko if: error() != null -->
+<div class="row">
+  <div class="col-md-offset-4 col-md-4 bg-danger">
+    <b>
+      <p>Error occured while trying to fetch data </p>
+        <span>Status : </span><span data-bind="text:error().status"></span><br>
+      <span>Status Text : </span><span data-bind="text:error().statusText"></span>
+    </b>
+</div>
+</div>
+<!-- /ko -->
